@@ -1,0 +1,43 @@
+- name: Install and Start the App
+  hosts: all
+  become: yes
+
+
+  tasks:
+  - name: Get Node.js
+    ansible.builtin.shell:
+      cmd: curl -sL https://deb.nodesource.com/setup_14.x | sudo bash - >> log.txt
+
+  - name: Installing Node.js
+    ansible.builtin.shell: 
+      cmd: apt -y install nodejs >> log.txt
+
+  - name: Get and unpack archive with mongod
+    ansible.builtin.unarchive:
+      dest: /home/ubuntu
+      remote_src: true
+      src: http://downloads.mongodb.org/linux/mongodb-linux-x86_64-2.6.12.tgz
+
+  - name: Create dir /data/db
+    ansible.builtin.file:
+      path: /data/db
+      state: directory
+      mode: '0777'
+
+  - name: Starting mongod
+    ansible.builtin.shell:
+      cmd: mongodb-linux-x86_64-2.6.12/bin/mongod & >> log.txt
+
+  - name: Getting source code of lets-chat
+    ansible.builtin.shell:
+      cmd: git clone https://github.com/sdelements/lets-chat.git >> log.txt
+
+  - name: Preparation for starting lets-chat
+    ansible.builtin.shell:
+      cmd: npm install >> log.txt
+      chdir: /home/ubuntu/lets-chat
+
+  - name: Starting lets-chat
+    ansible.builtin.shell:
+      cmd: npm start & >> log.txt
+      chdir: /home/ubuntu/lets-chat

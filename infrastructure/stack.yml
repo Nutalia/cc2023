@@ -1,0 +1,40 @@
+heat_template_version: 2015-04-30
+
+description: Simple app
+
+parameters:
+  Network:
+    type: string
+    default: "17eae9b6-2168-4a07-a0d3-66d5ad2a9f0e"
+
+resources:
+  Server:
+    description: server-instance
+    type: OS::Nova::Server
+    properties:
+      name: server_andreeva # Назначенное имя
+      key_name: andreeva_ns
+      image: ubuntu-22.04
+      flavor: m1.small
+      networks:
+      - port: { get_resource: Server_port }
+  
+  Server_group:
+    description: Security group for server
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+      - protocol: tcp # Для SSH
+        port_range_min: 22
+        port_range_max: 22
+      - protocol: tcp # Для web
+        port_range_min: 5000
+        port_range_max: 5000
+
+  Server_port:
+    description: Port for server (SSH,web)
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: Network }
+      security_groups:
+      - { get_resource: Server_group }
